@@ -99,30 +99,76 @@ def authorized():
 
 @app.route('/logout')
 def logout():
+    """Log out the user."""
     logout_user()
-    if session.get("user"): # Used MS Login
-        # Wipe out user and its token cache from session
-        session.clear()
-        # Also logout from your tenant's web session
+   
+    if session.get("user"):  # If MS Login was used
+        logger.info(f"User {session['user']['name']} logged out.")
+        session.clear()  # Clear token cache and session data
+       
         return redirect(
             Config.AUTHORITY + "/oauth2/v2.0/logout" +
-            "?post_logout_redirect_uri=" + url_for("login", _external=True))
-
+            "?post_logout_redirect_uri=" + url_for("login", _external=True)
+        )
+   
     return redirect(url_for('login'))
-
+ 
+ 
+# MSAL helpers
 def _load_cache():
-    # TODO: Load the cache from `msal`, if it exists
-    cache = None
+    cache = msal.SerializableTokenCache()
+    if session.get(TOKEN_CACHE):
+        cache.deserialize(session[TOKEN_CACHE])
     return cache
-
+ 
+ 
 def _save_cache(cache):
+    if cache.has_state_changed:
+        session[TOKEN_CACHE] = cache.serialize()
+ 
+ 
+def _build_msal_app(cache=None):
+    return msal.ConfidentialClientApplication(
+        Config.CLIENT_ID,
+        authority=Config.AUTHORITY,
+        client_credential=Config.CLIENT_SECRET,
+        token_cache=cache
+    )
+ 
+ 
+def _build_auth_url(state=None):
+    """Build the Microsoft Authentication URL."""
+    return _build_msal_app().get_authorization_request_url(
+        scopes=Config.SCOPE,
+        state=state,
+        redirect_uri=url_for('authorized', _external=True, _scheme='http')  # Use HTTP for local testing
+    )
+ 
+#def logout():
+    #logout_user()
+    #if session.get("user"): # Used MS Login
+        # Wipe out user and its token cache from session
+        #session.clear()
+        # Also logout from your tenant's web session
+        #return redirect(
+            #Config.AUTHORITY + "/oauth2/v2.0/logout" +
+            #"?post_logout_redirect_uri=" + url_for("login", _external=True))
+
+    #return redirect(url_for('login'))
+
+#def _load_cache():
+    # TODO: Load the cache from `msal`, if it exists
+    #cache = None
+    #return cache
+
+#def _save_cache(cache):
     # TODO: Save the cache, if it has changed
-    pass
+    #pass
 
-def _build_msal_app(cache=None, authority=None):
+#def _build_msal_app(cache=None, authority=None):
     # TODO: Return a ConfidentialClientApplication
-    return None
+    #return None
 
-def _build_auth_url(authority=None, scopes=None, state=None):
+#def _build_auth_url(authority=None, scopes=None, state=None):
     # TODO: Return the full Auth Request URL with appropriate Redirect URI
-    return None
+    #return None
