@@ -1,6 +1,9 @@
 """
 Routes and views for the flask application.
 """
+import logging
+logger = logging.getLogger(__name__)
+
 from datetime import datetime
 from flask import render_template, flash, redirect, request, session, url_for
 from werkzeug.urls import url_parse
@@ -121,3 +124,32 @@ def logout():
             Config.AUTHORITY + "/oauth2/v2.0/logout" +
             "?post_logout_redirect_uri=" + url_for("login", _external=True))
     return redirect(url_for('login'))
+
+@app.errorhandler(500)
+def internal_error(error):
+    logger.error(f'Server Error: {error}')
+    db.session.rollback()
+    return render_template('500.html'), 500
+@app.errorhandler(404)
+def not_found_error(error):
+    logger.error(f'Page not found: {error}')
+    return render_template('404.html'), 404
+@app.route('/test')
+def test():
+    """Test route to verify basic functionality"""
+    try:
+# Test database connection
+        with db.engine.connect() as connection:
+            connection.execute('SELECT 1')
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "auth_configured": bool(app.config['CLIENT_SECRET'] and app.config['CLIENT_ID']),
+            "blob_configured": bool(app.config['BLOB_STORAGE_KEY'])
+        }
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        return {
+            "status": "unhealthy",
+            "error": str(e)
+        }, 500
