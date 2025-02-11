@@ -1,9 +1,7 @@
 alembic==1.4.0
 azure-common==1.1.24
-azure-core==1.29.5
 azure-nspkg==3.0.2
 azure-storage==0.36.0
-azure-storage-blob==12.18.3
 certifi==2019.11.28
 cffi==1.14.6
 chardet==3.0.4
@@ -20,7 +18,7 @@ Jinja2==3.0.1
 Mako==1.1.1
 MarkupSafe==2.0.1
 msal==1.13.0
-pip==20.0.2
+pip==10.0.1
 pycparser==2.20
 pyodbc==4.0.28
 pyopenssl==19.1.0
