@@ -12,6 +12,7 @@ from FlaskWebProject.models import User, Post
 import msal
 import uuid
 imageSourceUrl = 'https://'+ app.config['BLOB_ACCOUNT'] + '.blob.core.windows.net/' + app.config['BLOB_CONTAINER'] + '/'
+
 def _load_cache():
     cache = msal.SerializableTokenCache()
     if session.get("token_cache"):
@@ -31,6 +32,7 @@ def _build_auth_url(authority=None, scopes=None, state=None):
         scopes or [],
         state=state or str(uuid.uuid4()),
         redirect_uri=url_for('authorized', _external=True, _scheme='https'))
+
 @app.route('/')
 @app.route('/home')
 @login_required
