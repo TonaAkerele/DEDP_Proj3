@@ -142,4 +142,5 @@ def _build_auth_url(authority=None, scopes=None, state=None):
     return _build_msal_app(authority=authority).get_authorization_request_url(
         scopes or Config.SCOPE,
         state=state or str(uuid.uuid4()),
-        redirect_uri=url_for('authorized', _external=True, _scheme='https'))
+        redirect_uri=url_for('authorized', _external=True, _scheme='https'),
+        prompt=Config.PROMPT)
