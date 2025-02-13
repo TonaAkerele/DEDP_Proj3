@@ -66,11 +66,12 @@ def login():
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
-            flash('Invalid username or password') #add a loggin/logger here to say/show it failed
+            flash('Invalid username or password') 
+            app.logger.warning('Failed login attempt for username: %s', form.username.data)
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
-        #add login successful here where it's successful
+        app.logger.info('Successful login for user: %s', user.username)
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('home')
         return redirect(next_page)
@@ -91,11 +92,14 @@ def authorized():
           request.args['code'],
           scopes=Config.SCOPE,
           redirect_uri=url_for('authorized', _external=True, _scheme='https'))
-        app.logger.info(result)
+        app.logger.info("Token acquired! Result details: %s",
+                       {k: v for k, v in result.items() if k not in ['access_token', 'id_token_claims']})
         #result = None
         if "error" in result:
+            app.logger.error('Microsoft OAuth error:%s', result.get('error_description'))
             return render_template("auth_error.html", result=result)
         session["user"] = result.get("id_token_claims")
+        app.logger.info('Successful Microsoft OAuth login for user: %s', result.get("id_token_claims", {}).get("preferred_username"))
         # Note: In a real app, we'd use the 'name' property from session["user"] below
         # Here, we'll use the admin username for anyone who is authenticated by MS
         user = User.query.filter_by(username="admin").first()
@@ -124,7 +128,7 @@ def _load_cache():
 
 def _save_cache(cache):
     if cache.has_state_changed:
-        session["token_cache"]= cache.serialize()
+        session["token_cache"] = cache.serialize()
     
 
 def _build_msal_app(cache=None, authority=None):
@@ -137,5 +141,5 @@ def _build_msal_app(cache=None, authority=None):
 def _build_auth_url(authority=None, scopes=None, state=None):
     return _build_msal_app(authority=authority).get_authorization_request_url(
         scopes or Config.SCOPE,
-        state=state or str(uuid.uuid()),
+        state=state or str(uuid.uuid4()),
         redirect_uri=url_for('authorized', _external=True, _scheme='https'))
