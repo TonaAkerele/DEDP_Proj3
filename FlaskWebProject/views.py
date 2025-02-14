@@ -102,14 +102,14 @@ def authorized():
           request.args['code'],
           scopes=Config.SCOPE,
           redirect_uri=url_for('authorized', _external=True, _scheme='https'))
-        logger.warning("**Microsoft AUTH** Token acquired! Result details: %s",
+        logger.info("**Microsoft AUTH** Token acquired! Result details: %s",
                        {k: v for k, v in result.items() if k not in ['access_token', 'id_token_claims']})
         #result = None
         if "error" in result:
             logger.error('**MICROSOFT AUTH ERROR**:%s', result.get('error_description'))
             return render_template("auth_error.html", result=result)
         session["user"] = result.get("id_token_claims")
-        logger.warning('**SUCCESSFUL MICROSOFT OAUTH LOGIN**  for user: %s', result.get("id_token_claims", {}).get("preferred_username"))
+        logger.info('**SUCCESSFUL MICROSOFT OAUTH LOGIN**  for user: %s', result.get("id_token_claims", {}).get("preferred_username"))
         # Note: In a real app, we'd use the 'name' property from session["user"] below
         # Here, we'll use the admin username for anyone who is authenticated by MS
         user = User.query.filter_by(username="admin").first()
