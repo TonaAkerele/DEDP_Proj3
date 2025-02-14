@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.WARNING)
 
 logger = logging.getLogger('FlaskWebProject')
 handler = logging.StreamHandler()
-handler.setLevel(logging.WARNING)
+handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(levelname)s: %(asctime)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
@@ -81,7 +81,7 @@ def login():
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
-        logger.warning('**SUCCESSFUL LOGIN** for username: %s', user.username)
+        logger.info('**SUCCESSFUL LOGIN** for username: %s', user.username)
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('home')
         return redirect(next_page)
