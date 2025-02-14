@@ -13,6 +13,17 @@ from FlaskWebProject.models import User, Post
 import msal
 import uuid
 
+import logging
+logging.basicConfig(level=level.WARNING)
+
+logger = logging.getLogger('FlaskWebProject')
+handler = logging.StreamHandler()
+handler.setLevel(logging.WARNING)
+formatter = logging.Formatter('%(levelname)s: %(asctime)s - %(messages)s')
+handler.setFormatter('%(levelname)s: %(asctime)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
 imageSourceUrl = 'https://'+ app.config['BLOB_ACCOUNT']  + '.blob.core.windows.net/' + app.config['BLOB_CONTAINER']  + '/'
 
 @app.route('/')
@@ -67,11 +78,11 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is None or not user.check_password(form.password.data):
             flash('Invalid username or password') 
-            app.logger.warning('Failed login attempt for username: %s', form.username.data)
+            logger.warning('Failed login attempt for username: %s', form.username.data)
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
-        app.logger.warning('**SUCCESSFUL LOGIN** for username: %s', user.username)
+        logger.warning('**SUCCESSFUL LOGIN** for username: %s', user.username)
         if not next_page or url_parse(next_page).netloc != '':
             next_page = url_for('home')
         return redirect(next_page)
@@ -92,14 +103,14 @@ def authorized():
           request.args['code'],
           scopes=Config.SCOPE,
           redirect_uri=url_for('authorized', _external=True, _scheme='https'))
-        app.logger.warning("**Microsoft AUTH** Token acquired! Result details: %s",
+        logger.warning("**Microsoft AUTH** Token acquired! Result details: %s",
                        {k: v for k, v in result.items() if k not in ['access_token', 'id_token_claims']})
         #result = None
         if "error" in result:
-            app.logger.error('**MICROSOFT AUTH ERROR**:%s', result.get('error_description'))
+            logger.error('**MICROSOFT AUTH ERROR**:%s', result.get('error_description'))
             return render_template("auth_error.html", result=result)
         session["user"] = result.get("id_token_claims")
-        app.logger.warning('**SUCCESSFUL MICROSOFT OAUTH LOGIN**  for user: %s', result.get("id_token_claims", {}).get("preferred_username"))
+        logger.warning('**SUCCESSFUL MICROSOFT OAUTH LOGIN**  for user: %s', result.get("id_token_claims", {}).get("preferred_username"))
         # Note: In a real app, we'd use the 'name' property from session["user"] below
         # Here, we'll use the admin username for anyone who is authenticated by MS
         user = User.query.filter_by(username="admin").first()
