@@ -14,9 +14,10 @@ import msal
 import uuid
 
 import logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger('FlaskWebProject')
+logger.setLevel(logging.INFO)
 handler = logging.StreamHandler()
 handler.setLevel(logging.INFO)
 formatter = logging.Formatter('%(levelname)s: %(asctime)s - %(message)s')
