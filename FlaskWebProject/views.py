@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger('FlaskWebProject')
 handler = logging.StreamHandler()
 handler.setLevel(logging.WARNING)
-formatter = logging.Formatter('%(levelname)s: %(asctime)s - %(messages)s')
+formatter = logging.Formatter('%(levelname)s: %(asctime)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
